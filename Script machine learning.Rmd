@@ -1,0 +1,69 @@
+---
+title: "Assignment Machine Learning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The goal of this project is to predict the manner in which 6 people exercise.
+This is the "classe" variable in the training set. Other variables were used to predict, in order to
+create a model and to perform the prediction of 20 different test cases.
+
+
+## Process
+
+First it was neccesary to load the files, this files were readed using the comand csv. considering that the NAS had a different form ("#DIV/0!")
+
+```{r echo=FALSE}
+#Set directory
+setwd("C:/Users/Rafaela Becerra/Desktop/Coursera/Practical Machine Learning")
+
+#Load all the packages that might be needed
+library(caret)
+library(randomForest)
+```
+
+I prove a few methods but I decided to use the Random Forest algorithm because it was the better fit and proved the more accuracy, sensitivity & specificity.I used set.seed to make my work reproducible.
+```{r  eval=FALSE, echo=TRUE}
+set.seed(50000)
+
+#Read the training data
+training <- read.csv("pml-training.csv", stringsAsFactors=FALSE, na.strings=c("NA", "#DIV/0!"))
+
+#Change NAS with 0
+training[is.na(training)]<-0
+
+#Split the data in testing ad training with a 75/25
+inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE)
+training <- training[inTrain,]
+testing <- training[-inTrain,]
+```
+I drop variables that are not necesary: X, user_name, raw_timestamp_part_1, raw_timestamp_part_2,
+cvtd_timestamp, new_window, num_window and the ones that have near to cero variance.
+```{r eval=FALSE, echo=TRUE}
+training <- training[,-(1:7)]
+training <- training[,-nearZeroVar(training)]
+```
+I used a random forest wich gave me an accuracy of 0.97 by evaluating it with the use of the confusionmatrix method. 
+```{r eval=FALSE, echo=TRUE}
+modelFit <- randomForest(classe ~., data=training, type="class")
+confusionMatrix(modelFit)
+
+predictionsTrain <- predict(modelFit, newdata=training)
+confusionMatrix(predictionsTr,training$classe)
+
+predictionsTest <- predict(modelFit, newdata=testing)
+confusionMatrix(predictionsTe,testing$classe)
+```
+The code used for presenting the prediction for the 20 cases was
+```{r eval=FALSE, echo=TRUE}
+testing <- read.csv("pml-testing.csv", stringsAsFactors=FALSE, na.strings=c("NA", "#DIV/0!"))
+
+#For predinting the model I run this code
+test <- predict(modelFit, newdata = testing, type="class")
+```
+
